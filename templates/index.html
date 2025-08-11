@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 Kisan Mitra - Your Farming Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            /* --- NEW BACKGROUND PICTURE TO MATCH YOUR EXAMPLES --- */
+            background-image: url('https://wallpapercave.com/wp/wp9684694.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        #chat-container::-webkit-scrollbar { width: 6px; }
+        #chat-container::-webkit-scrollbar-track { background: transparent; }
+        #chat-container::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 6px; }
+        #chat-container::-webkit-scrollbar-thumb:hover { background: #71717a; }
+        .chat-bubble-ai {
+            background-color: #f4f4f5; /* A very light gray for AI */
+            color: #18181b;
+        }
+        .chat-bubble-user {
+            background-color: #16a34a; /* A rich, modern green for the user */
+            color: #FFFFFF;
+        }
+        /* Style for the microphone button when listening */
+        .mic-listening {
+            background-color: #ef4444 !important; /* Red background */
+            color: white !important;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- --- FINAL FLOATING CARD DESIGN --- -->
+    <div class="w-full max-w-3xl mx-auto bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl flex flex-col h-[95vh] border border-gray-200/50">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200/50 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-600 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.6 15.18C16.6 15.18 15.35 17.43 12 19C8.65 17.43 7.4 15.18 7.4 15.18C7.4 15.18 8.65 12.93 12 11.36C15.35 12.93 16.6 15.18 16.6 15.18Z" fill="white"/><path d="M12 5C10.07 5 8.5 6.57 8.5 8.5C8.5 9.84 9.24 10.94 10.25 11.43C10.25 11.43 10.88 10.55 12 10C13.12 10.55 13.75 11.43 13.75 11.43C14.76 10.94 15.5 9.84 15.5 8.5C15.5 6.57 13.93 5 12 5Z" fill="white"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">Kisan Mitra</h1>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                        <p class="text-xs text-gray-600 font-medium">Online</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <label for="language-select" class="text-sm font-medium text-gray-600">Language:</label>
+                <select id="language-select" class="rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm text-gray-800">
+                    <option value="en-US" data-tts-lang="en-US">English</option>
+                    <option value="hi-IN" data-tts-lang="hi-IN">हिन्दी (Hindi)</option>
+                    <option value="kn-IN" data-tts-lang="kn-IN">ಕನ್ನಡ (Kannada)</option>
+                    <option value="te-IN" data-tts-lang="te-IN">తెలుగు (Telugu)</option>
+                    <option value="ta-IN" data-tts-lang="ta-IN">தமிழ் (Tamil)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chat-container" class="flex-1 p-6 overflow-y-auto space-y-6">
+            <!-- Messages will be added here by JavaScript -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 border-t border-gray-200/50 bg-white/60 rounded-b-2xl flex-shrink-0">
+            <div class="flex items-center space-x-2">
+                <input type="text" id="user-input" class="flex-1 w-full bg-gray-100 border-transparent rounded-full py-3 px-5 focus:ring-2 focus:ring-green-500 focus:border-transparent transition" placeholder="Ask a question or use the microphone...">
+                <input type="file" id="photo-input" class="hidden" accept="image/*">
+                
+                <button id="mic-btn" title="Ask with Voice" class="p-3 rounded-full text-gray-500 hover:bg-gray-200 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                </button>
+
+                <button id="upload-btn" title="Upload Photo" class="p-3 rounded-full text-gray-500 hover:bg-gray-200 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </button>
+                <button id="send-btn" title="Send Message" class="p-3 rounded-full bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300 transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const photoInput = document.getElementById('photo-input');
+        const micBtn = document.getElementById('mic-btn');
+        const languageSelect = document.getElementById('language-select');
+        
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        const speechSynthesis = window.speechSynthesis;
+
+        const addMessage = (sender, message) => {
+            const messageWrapper = document.createElement('div');
+            const isUser = sender === 'user';
+            messageWrapper.className = `flex items-start gap-3 ${isUser ? 'justify-end' : ''}`;
+            const bubbleClass = isUser ? 'chat-bubble-user' : 'chat-bubble-ai';
+            const avatarContent = isUser ? 'You' : 'Mitra';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            messageWrapper.innerHTML = `
+                ${!isUser ? `<div class="bg-green-600 text-white p-2 rounded-full h-10 w-10 flex items-center justify-center font-bold text-sm flex-shrink-0">${avatarContent}</div>` : ''}
+                <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'}">
+                    <div class="${bubbleClass} p-3 rounded-lg max-w-md shadow-sm">
+                        <p>${message.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5 px-1">${time}</p>
+                </div>
+                ${isUser ? `<div class="bg-white text-gray-700 p-2 rounded-full h-10 w-10 flex items-center justify-center font-bold text-sm flex-shrink-0 border shadow-sm">You</div>` : ''}
+            `;
+            chatContainer.appendChild(messageWrapper);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (!isUser && message) {
+                speak(message);
+            }
+        };
+
+        const speak = (text) => {
+            if (speechSynthesis && text) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                const selectedOption = languageSelect.options[languageSelect.selectedIndex];
+                utterance.lang = selectedOption.getAttribute('data-tts-lang');
+                speechSynthesis.speak(utterance);
+            }
+        };
+
+        const showTypingIndicator = () => {
+             const typingIndicator = document.createElement('div');
+             typingIndicator.id = 'typing-indicator';
+             typingIndicator.className = 'flex items-start gap-3';
+             typingIndicator.innerHTML = `<div class="bg-green-600 text-white p-2 rounded-full h-10 w-10 flex items-center justify-center font-bold text-sm flex-shrink-0">Mitra</div><div class="chat-bubble-ai p-4 rounded-lg max-w-xs shadow-sm"><div class="flex items-center space-x-1.5"><div class="w-2.5 h-2.5 bg-gray-400 rounded-full animate-pulse"></div><div class="w-2.5 h-2.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div><div class="w-2.5 h-2.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div></div></div>`;
+             chatContainer.appendChild(typingIndicator);
+             chatContainer.scrollTop = chatContainer.scrollHeight;
+        };
+
+        const removeTypingIndicator = () => {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        };
+
+        const handleSend = async (query) => {
+            if (!query) return;
+            addMessage('user', query);
+            userInput.value = '';
+            const suggestionButtonsContainer = document.getElementById('suggestion-buttons');
+            if (suggestionButtonsContainer) suggestionButtonsContainer.style.display = 'none';
+            showTypingIndicator();
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, language: languageSelect.options[languageSelect.selectedIndex].text }),
+                });
+                removeTypingIndicator();
+                const data = await response.json();
+                addMessage('bot', data.response || 'Sorry, something went wrong.');
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('bot', 'I am having trouble connecting. Please try again later.');
+            }
+        };
+
+        const handleSendPhoto = async (file) => {
+            addMessage('user', `Uploading photo: ${file.name}`);
+            const suggestionButtonsContainer = document.getElementById('suggestion-buttons');
+            if (suggestionButtonsContainer) suggestionButtonsContainer.style.display = 'none';
+            showTypingIndicator();
+            const formData = new FormData();
+            formData.append('photo', file);
+            formData.append('language', languageSelect.options[languageSelect.selectedIndex].text);
+            try {
+                const response = await fetch('/ask', { method: 'POST', body: formData });
+                removeTypingIndicator();
+                const data = await response.json();
+                addMessage('bot', data.response || 'Sorry, something went wrong processing the image.');
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('bot', 'I am having trouble uploading the image. Please try again later.');
+            }
+        };
+
+        sendBtn.addEventListener('click', () => handleSend(userInput.value.trim()));
+        userInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') handleSend(userInput.value.trim()); });
+        uploadBtn.addEventListener('click', () => photoInput.click());
+        photoInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) handleSendPhoto(file);
+        });
+
+        if (recognition) {
+            micBtn.addEventListener('click', () => {
+                if (micBtn.classList.contains('mic-listening')) {
+                    recognition.stop();
+                } else {
+                    recognition.lang = languageSelect.value;
+                    recognition.start();
+                }
+            });
+
+            recognition.onstart = () => {
+                micBtn.classList.add('mic-listening');
+                userInput.placeholder = "Listening...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                handleSend(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                userInput.placeholder = "Error listening. Please try again.";
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('mic-listening');
+                userInput.placeholder = "Ask a question or use the microphone...";
+            };
+        } else {
+            micBtn.style.display = 'none';
+        }
+
+        const initialBotMessage = () => {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex items-start gap-3';
+            messageWrapper.innerHTML = `
+                <div class="bg-green-600 text-white p-2 rounded-full h-10 w-10 flex items-center justify-center font-bold text-sm flex-shrink-0">Mitra</div>
+                <div>
+                    <div class="chat-bubble-ai p-3 rounded-lg max-w-md shadow-sm">
+                        <p class="font-medium">Welcome! I am your personal farming Mitra (friend).</p>
+                        <p class="text-sm text-gray-600 mt-1">You can ask me anything, or try one of the suggestions below.</p>
+                    </div>
+                    <div id="suggestion-buttons" class="mt-2.5 flex flex-wrap gap-2">
+                        <button class="suggestion-btn text-sm bg-white/80 border border-gray-300 rounded-full px-3 py-1 hover:bg-gray-200 transition">Weather Today?</button>
+                        <button class="suggestion-btn text-sm bg-white/80 border border-gray-300 rounded-full px-3 py-1 hover:bg-gray-200 transition">Market Prices</button>
+                        <button class="suggestion-btn text-sm bg-white/80 border border-gray-300 rounded-full px-3 py-1 hover:bg-gray-200 transition">Soil Health Tips</button>
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(messageWrapper);
+
+            const suggestionButtonsContainer = document.getElementById('suggestion-buttons');
+            suggestionButtonsContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('suggestion-btn')) {
+                    const query = event.target.textContent;
+                    handleSend(query);
+                }
+            });
+        };
+        
+        initialBotMessage();
+
+    </script>
+</body>
+</html>
+
+
+
